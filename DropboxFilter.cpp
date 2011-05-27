@@ -324,6 +324,32 @@ void EditConfig()
 	_spawnl(_P_DETACH,notepadExe,notepadExe,configPath,NULL);
 }
 
+void LaunchDropbox()
+{
+	char exePath[MAX_PATH];
+	sprintf(exePath,"%s\\Dropbox\\bin\\Dropbox.exe",getenv("APPDATA"));
+	char installPath[MAX_PATH];
+	sprintf(installPath,"%s\\DropboxFilter",getenv("ProgramFiles"));
+	char dllPath[MAX_PATH];
+	sprintf(dllPath,"%s\\DropboxFilter.dll",installPath);
+
+	STARTUPINFO si;
+	::ZeroMemory(&si, sizeof(STARTUPINFO));
+
+	PROCESS_INFORMATION pi;
+
+	if(!CreateProcessA(exePath,"",NULL,NULL,FALSE,CREATE_SUSPENDED,NULL,NULL,&si,&pi)) {
+		MessageBox(NULL,"Failed to launch dropbox","DropboxFilter",MB_OK);
+		return;
+	}
+	if(!RemoteLoadDll(pi.hProcess,dllPath)) {
+		MessageBox(NULL,"Failed to load dll into dropbox remotely","DropboxFilter",MB_OK);
+		TerminateProcess(pi.hProcess,0);
+		return;
+	}
+	ResumeThread(pi.hThread);
+}
+
 // Message handler for about box.
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -406,7 +432,11 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
                      int       nCmdShow)
 {
 	UNREFERENCED_PARAMETER(hPrevInstance);
-	UNREFERENCED_PARAMETER(lpCmdLine);
+
+	if(strcmp(lpCmdLine,"--launchDropbox")==0) {
+		LaunchDropbox();
+		return 0;
+	}
 
 
 	DialogBox(hInstance, MAKEINTRESOURCE(IDD_DROPBOX_FILTER), NULL, About);
