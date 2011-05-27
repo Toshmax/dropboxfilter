@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DropBoxFilter", "DropBoxFilter.vcxproj", "{57B9E683-689F-49D0-975E-8DB6CA399EE4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{29B1DAD7-B117-4BA9-9637-DAF84075E0D9} = {29B1DAD7-B117-4BA9-9637-DAF84075E0D9}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Inject", "Inject\Inject.vcxproj", "{29B1DAD7-B117-4BA9-9637-DAF84075E0D9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{57B9E683-689F-49D0-975E-8DB6CA399EE4}.Debug|Win32.ActiveCfg = Debug|Win32
+		{57B9E683-689F-49D0-975E-8DB6CA399EE4}.Debug|Win32.Build.0 = Debug|Win32
+		{57B9E683-689F-49D0-975E-8DB6CA399EE4}.Release|Win32.ActiveCfg = Release|Win32
+		{57B9E683-689F-49D0-975E-8DB6CA399EE4}.Release|Win32.Build.0 = Release|Win32
+		{29B1DAD7-B117-4BA9-9637-DAF84075E0D9}.Debug|Win32.ActiveCfg = Debug|Win32
+		{29B1DAD7-B117-4BA9-9637-DAF84075E0D9}.Debug|Win32.Build.0 = Debug|Win32
+		{29B1DAD7-B117-4BA9-9637-DAF84075E0D9}.Release|Win32.ActiveCfg = Release|Win32
+		{29B1DAD7-B117-4BA9-9637-DAF84075E0D9}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
