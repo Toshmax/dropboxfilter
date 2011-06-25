@@ -60,15 +60,21 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
+      <UACExecutionLevel>AsInvoker</UACExecutionLevel>
+      <UACUIAccess>false</UACUIAccess>
     </Link>
     <ResourceCompile>
       <PreprocessorDefinitions>DEBUG</PreprocessorDefinitions>
     </ResourceCompile>
+    <Manifest>
+      <AdditionalManifestFiles>manifest.xml</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -80,6 +86,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -88,6 +95,9 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
+    <Manifest>
+      <AdditionalManifestFiles>manifest.xml</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DropBoxFilter.cpp" />
@@ -109,8 +119,11 @@
     <ClInclude Include="Util.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="changelog.txt" />
     <None Include="DropboxFilter.cfg" />
     <None Include="DropBoxFilter.ico" />
+    <None Include="manifest.xml" />
+    <None Include="Release\Inject.dll" />
     <None Include="small.ico" />
   </ItemGroup>
   <ItemGroup>

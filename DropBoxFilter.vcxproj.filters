@@ -31,6 +31,9 @@
     <None Include="DropBoxFilter.ico" />
     <None Include="small.ico" />
     <None Include="DropboxFilter.cfg" />
+    <None Include="manifest.xml" />
+    <None Include="Release\Inject.dll" />
+    <None Include="changelog.txt" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="SQLite">

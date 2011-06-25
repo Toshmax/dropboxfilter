@@ -12,7 +12,7 @@
 #include "SQLite/sqlite3.h"
 #include <stdio.h>
 #include <process.h>
-
+#include <Shellapi.h>
 #define MAX_LOADSTRING 100
 
 char dropboxPath[MAX_PATH];
@@ -260,7 +260,7 @@ bool Install()
 		fclose(file);
 	}
 	if(file == NULL || written != SizeofResource(NULL,hResource)) {
-		MessageBox(NULL,"Failed to install dll to Program Files directory.","Failed",MB_OK);
+		MessageBox(NULL,"Failed to install dll to Program Files directory.\nYou migh have to run this installer with Administrator privilegies\n\nExit installer right click on installer executable and choose run as administrator.","Failed",MB_OK);
 	}
 	return true;
 }
@@ -350,6 +350,26 @@ void LaunchDropbox()
 	ResumeThread(pi.hThread);
 }
 
+bool IsElevated()
+{
+	HKEY key=NULL;
+	bool ok = ERROR_SUCCESS == RegOpenKeyEx(HKEY_LOCAL_MACHINE, "Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows", 0, KEY_READ|KEY_WRITE, &key);
+	RegCloseKey(key);
+	return ok;
+}
+
+void Elevate(HWND hWnd,int cmd)
+{
+	if(IsElevated())
+		return;
+	char path[MAX_PATH];
+	GetModuleFileNameA(NULL,path,sizeof(path));
+	char param[16];
+	sprintf(param,"%d",cmd);
+	ShellExecute(hWnd, "runas", path, param, 0, SW_SHOWNORMAL);
+	ExitProcess(0);
+}
+
 // Message handler for about box.
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -366,7 +386,11 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			CopyRect(&rc, &rcOwner); 
 
 			SetWindowTextA(GetDlgItem(hDlg,IDC_INSTRUCTIONS),"DropboxFilter is a program that hooks into dropbox and adds filter capabilities.\n\nThere is two ways to install it.\n\n1. AppInit Dll's\n\tThis method is a bit intrusive, anal virus scanners might detect this as a threat. But, it will not disappear when Dropbox is automatically updated.\n\n2. Piggyback start up launching.\n\tThis method will replace the dropbox system start with its own. When dropbox is automatically updated it might remove this and thereby disabling DropboxFilter without you noticing.\n\nAppInit method is recommended.");
-
+			if(!IsElevated()) {
+				Button_SetElevationRequiredState(GetDlgItem(hDlg,IDC_INSTALL_APPINIT),TRUE);
+				Button_SetElevationRequiredState(GetDlgItem(hDlg,IDC_INSTALL_PIGGYBACK),TRUE);
+				Button_SetElevationRequiredState(GetDlgItem(hDlg,IDC_UNINSTALL),TRUE);
+			}
 			// Offset the owner and dialog box rectangles so that right and bottom 
 			// values represent the width and height, and then offset the owner again 
 			// to discard space taken up by the dialog box. 
@@ -383,7 +407,10 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 				rcOwner.left + (rc.right / 2), 
 				rcOwner.top + (rc.bottom / 2), 
 				0, 0,          // Ignores size arguments. 
-				SWP_NOSIZE); 
+				SWP_NOSIZE);
+			if(lParam) {
+				PostMessage(hDlg,WM_COMMAND,lParam,0);
+			}
 		}
 		return (INT_PTR)TRUE;
 
@@ -394,6 +421,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			EndDialog(hDlg, LOWORD(wParam));
 			return (INT_PTR)TRUE;
 		case IDC_INSTALL_APPINIT:
+			Elevate(hDlg,IDC_INSTALL_APPINIT);
 			if(!Install()) {
 				return TRUE;
 			}
@@ -403,6 +431,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			MessageBoxA(NULL,"Install done.\n\nStart dropbox manualy from the start menu.","Installed",MB_OK);
 			return TRUE;
 		case IDC_INSTALL_PIGGYBACK:
+			Elevate(hDlg,IDC_INSTALL_PIGGYBACK);
 			if(!Install()) {
 				return TRUE;
 			}
@@ -412,6 +441,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			MessageBoxA(NULL,"Install done.\n\nStart dropbox manualy from the startup folder on the start menu.","Installed",MB_OK);
 			return TRUE;
 		case IDC_UNINSTALL:
+			Elevate(hDlg,IDC_INSTALL_PIGGYBACK);
 			UnInstall();
 			UnInstallPiggyback();
 			UnInstallAppInit();
@@ -438,8 +468,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 		return 0;
 	}
 
-
-	DialogBox(hInstance, MAKEINTRESOURCE(IDD_DROPBOX_FILTER), NULL, About);
+	DialogBoxParamA(hInstance, MAKEINTRESOURCE(IDD_DROPBOX_FILTER), NULL, About,atoi(lpCmdLine));
 
 	return 0;
 }

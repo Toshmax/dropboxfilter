@@ -34,13 +34,21 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 IDI_DROPBOXFILTER       ICON                    "DropBoxFilter.ico"
 IDI_SMALL               ICON                    "small.ico"
 
+/////////////////////////////////////////////////////////////////////////////
+//
+// DLL
+//
 #ifdef DEBUG
-ID_DLL DLL "Debug\\Inject.dll"
+ID_DLL                  DLL                     "Debug\\Inject.dll"
 #else
-ID_DLL DLL "Release\\Inject.dll"
+ID_DLL                  DLL                     "Release\\Inject.dll"
 #endif
+/////////////////////////////////////////////////////////////////////////////
+//
+// TXT
+//
 
-ID_CONFIG TXT "DropboxFilter.cfg"
+ID_CONFIG               TXT                     "DropboxFilter.cfg"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -84,10 +92,10 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     PUSHBUTTON      "Close",ID_CLOSE,217,168,50,16
     LTEXT           "",IDC_INSTRUCTIONS,7,7,260,120
-    DEFPUSHBUTTON   "Install AppInit",IDC_INSTALL_APPINIT,7,154,63,14
-    PUSHBUTTON      "Install Piggyback",IDC_INSTALL_PIGGYBACK,7,168,63,16
-    PUSHBUTTON      "Edit config",IDC_EDIT_CONFIG,70,168,63,16
-    PUSHBUTTON      "Uninstall",IDC_UNINSTALL,70,154,63,14
+    DEFPUSHBUTTON   "Install AppInit",IDC_INSTALL_APPINIT,7,154,71,14
+    PUSHBUTTON      "Install Piggyback",IDC_INSTALL_PIGGYBACK,7,168,71,16
+    PUSHBUTTON      "Edit config",IDC_EDIT_CONFIG,78,168,71,16
+    PUSHBUTTON      "Uninstall",IDC_UNINSTALL,78,154,71,14
 END
 
 

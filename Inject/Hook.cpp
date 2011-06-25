@@ -34,7 +34,9 @@ DWORD WINAPI OverlappEmuThread(void *)
 	for(;;) {
 		int wait = WaitForMultipleObjects(ARRAY_COUNT(waitHandles),waitHandles,FALSE,INFINITE);
 		OverlappedData * data = &overlappedEmuData[wait];
-		data->func(data->data1,data->data2);
+		if(data->overlapped.InternalHigh) {
+			data->func(data->data1,data->data2);
+		}
 		data->realOverlapped->Internal = data->overlapped.Internal;
 		data->realOverlapped->InternalHigh = data->overlapped.InternalHigh;
 		SetEvent(data->realOverlapped->hEvent);
@@ -280,15 +282,17 @@ void FilterNotifyInformation(void *_info,HANDLE hDirectory)
 		if(in->Action != FILE_ACTION_REMOVED) {
 			wchar_t nameBuf[1024*10];
 			wchar_t *name = PathFromHandle(hDirectory,nameBuf,sizeof(nameBuf));
-			size_t inIdx=0;
-			size_t outIdx = wcslen(name);
-			name[outIdx++] = '\\';
-			for(;inIdx < in->FileNameLength/2;outIdx++,inIdx++) {
-				name[outIdx] = in->FileName[inIdx];
-			}
-			name[outIdx] = 0;
-			if(Filter(name)) {
-				in->FileName[0] = '@';
+			if(name != NULL) {
+				size_t inIdx=0;
+				size_t outIdx = wcslen(name);
+				name[outIdx++] = '\\';
+				for(;inIdx < in->FileNameLength/2;outIdx++,inIdx++) {
+					name[outIdx] = in->FileName[inIdx];
+				}
+				name[outIdx] = 0;
+				if(Filter(name)) {
+					in->FileName[0] = '@';
+				}
 			}
 		}
 

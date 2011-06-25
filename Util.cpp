@@ -116,6 +116,8 @@ wchar_t *PathFromHandle(HANDLE h,void *buf,size_t bufSize)
 	OBJECT_NAME_INFORMATION *info = (OBJECT_NAME_INFORMATION *)buf;
 
 	if(NtQueryObjectFunc(h,/*ObjectNameInformation*/(OBJECT_INFORMATION_CLASS)1,info,bufSize, NULL) == 0) {
+		if(info->Name.Length == 0)
+			return NULL;
 		info->Name.Buffer[info->Name.Length] = 0;
 		char device[1024*10];
 		int slash = 3;
