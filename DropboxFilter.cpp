@@ -409,7 +409,11 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 				0, 0,          // Ignores size arguments. 
 				SWP_NOSIZE);
 			if(lParam) {
-				PostMessage(hDlg,WM_COMMAND,lParam,0);
+				if(IsElevated()) {
+					PostMessage(hDlg,WM_COMMAND,lParam,0);
+				} else {
+					MessageBox(NULL,"Could not elevate process rights. Your user needs to have admin rights to install this program","Cant elevate",MB_OK);
+				}
 			}
 		}
 		return (INT_PTR)TRUE;
