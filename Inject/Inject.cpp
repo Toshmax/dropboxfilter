@@ -8,6 +8,7 @@
 #include <string>
 #include <deque>
 #include "../SQLite/sqlite3.h"
+#include "../base64.h"
 using namespace std;
 
 deque<wstring> filterExpr;
@@ -21,6 +22,8 @@ void GetDropboxPath()
 	char dropboxDbPath[MAX_PATH];
 	sprintf(dropboxDbPath,"%s\\Dropbox\\config.db",getenv("APPDATA"));
 
+	bool pathFound = false;
+
 	sqlite3 *db=NULL;
 	sqlite3_open(dropboxDbPath,&db);
 	if(db) {
@@ -33,6 +36,19 @@ void GetDropboxPath()
 			sqlite3_finalize(stmt);
 		}
 		sqlite3_close(db);
+	}
+	if(!pathFound) {
+		sprintf(dropboxDbPath,"%s\\Dropbox\\host.db",getenv("APPDATA"));
+		FILE *file = fopen(dropboxDbPath,"r");
+		if(file) {
+			char line[1024*10]="";
+			fgets(line,sizeof(line),file);
+			fgets(line,sizeof(line),file);
+			string path = base64_decode(line);
+			mbstowcs(dropboxPath,path.c_str(),path.size()+1);
+			fclose(file);
+		}
+
 	}
 }
 

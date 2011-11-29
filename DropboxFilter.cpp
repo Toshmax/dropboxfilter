@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <process.h>
 #include <Shellapi.h>
+#include "base64.h"
 #define MAX_LOADSTRING 100
 
 char dropboxPath[MAX_PATH];
@@ -23,6 +24,8 @@ void GetDropboxPath()
 	char dropboxDbPath[MAX_PATH];
 	sprintf(dropboxDbPath,"%s\\Dropbox\\config.db",getenv("APPDATA"));
 
+	bool pathFound = false;
+
 	sqlite3 *db=NULL;
 	sqlite3_open(dropboxDbPath,&db);
 	if(db) {
@@ -31,53 +34,68 @@ void GetDropboxPath()
 			if(sqlite3_step(stmt) ==  SQLITE_ROW) {
 				const char *path = (char *)sqlite3_column_blob(stmt,0);
 				strcpy(dropboxPath,path);
+				pathFound = true;
 			}
 			sqlite3_finalize(stmt);
 		}
 		sqlite3_close(db);
 	}
+	
+	if(!pathFound) {
+		sprintf(dropboxDbPath,"%s\\Dropbox\\host.db",getenv("APPDATA"));
+		FILE *file = fopen(dropboxDbPath,"r");
+		if(file) {
+			char line[1024*10]="";
+			fgets(line,sizeof(line),file);
+			fgets(line,sizeof(line),file);
+			string path = base64_decode(line);
+			strcpy(dropboxPath,path.c_str());
+			fclose(file);
+		}
+
+	}
 }
 
 HRESULT CreateLink(LPCSTR lpszPathLink, LPCSTR lpszPathObj, LPCSTR lpszDesc, LPCSTR lpszArgs) 
 { 
-    HRESULT hres; 
-    IShellLink* psl; 
+	HRESULT hres; 
+	IShellLink* psl; 
  
-    // Get a pointer to the IShellLink interface. It is assumed that CoInitialize
-    // has already been called.
-    hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID*)&psl); 
-    if (SUCCEEDED(hres)) 
-    { 
-        IPersistFile* ppf; 
+	// Get a pointer to the IShellLink interface. It is assumed that CoInitialize
+	// has already been called.
+	hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID*)&psl); 
+	if (SUCCEEDED(hres)) 
+	{ 
+		IPersistFile* ppf; 
  
-        // Set the path to the shortcut target and add the description. 
-        psl->SetPath(lpszPathObj); 
+		// Set the path to the shortcut target and add the description. 
+		psl->SetPath(lpszPathObj); 
 		if(lpszArgs) {
 			psl->SetArguments(lpszArgs);
 		}
-        psl->SetDescription(lpszDesc); 
+		psl->SetDescription(lpszDesc); 
  
-        // Query IShellLink for the IPersistFile interface, used for saving the 
-        // shortcut in persistent storage. 
-        hres = psl->QueryInterface(IID_IPersistFile, (LPVOID*)&ppf); 
+		// Query IShellLink for the IPersistFile interface, used for saving the 
+		// shortcut in persistent storage. 
+		hres = psl->QueryInterface(IID_IPersistFile, (LPVOID*)&ppf); 
  
-        if (SUCCEEDED(hres)) 
-        { 
-            WCHAR wsz[MAX_PATH]; 
+		if (SUCCEEDED(hres)) 
+		{ 
+			WCHAR wsz[MAX_PATH]; 
  
-            // Ensure that the string is Unicode. 
-            MultiByteToWideChar(CP_ACP, 0, lpszPathLink, -1, wsz, MAX_PATH); 
+			// Ensure that the string is Unicode. 
+			MultiByteToWideChar(CP_ACP, 0, lpszPathLink, -1, wsz, MAX_PATH); 
 			
-            // Add code here to check return value from MultiByteWideChar 
-            // for success.
+			// Add code here to check return value from MultiByteWideChar 
+			// for success.
  
-            // Save the link by calling IPersistFile::Save. 
-            hres = ppf->Save(wsz, TRUE); 
-            ppf->Release(); 
-        } 
-        psl->Release(); 
-    } 
-    return hres; 
+			// Save the link by calling IPersistFile::Save. 
+			hres = ppf->Save(wsz, TRUE); 
+			ppf->Release(); 
+		} 
+		psl->Release(); 
+	} 
+	return hres; 
 }
 
 
@@ -461,9 +479,9 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 int APIENTRY _tWinMain(HINSTANCE hInstance,
-                     HINSTANCE hPrevInstance,
-                     LPTSTR    lpCmdLine,
-                     int       nCmdShow)
+					 HINSTANCE hPrevInstance,
+					 LPTSTR    lpCmdLine,
+					 int       nCmdShow)
 {
 	UNREFERENCED_PARAMETER(hPrevInstance);
 

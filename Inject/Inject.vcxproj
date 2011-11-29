@@ -89,6 +89,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\base64.cpp" />
     <ClCompile Include="..\SQLite\shell.c" />
     <ClCompile Include="..\SQLite\sqlite3.c" />
     <ClCompile Include="glob.cpp" />
@@ -131,6 +132,7 @@
     <ClCompile Include="..\Util.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\base64.h" />
     <ClInclude Include="..\SQLite\sqlite3.h" />
     <ClInclude Include="..\SQLite\sqlite3ext.h" />
     <ClInclude Include="glob.h" />

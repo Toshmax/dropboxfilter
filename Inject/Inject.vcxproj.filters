@@ -25,6 +25,7 @@
     <ClCompile Include="..\SQLite\sqlite3.c">
       <Filter>SQLite</Filter>
     </ClCompile>
+    <ClCompile Include="..\base64.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glob.h" />
@@ -54,6 +55,7 @@
     <ClInclude Include="..\SQLite\sqlite3ext.h">
       <Filter>SQLite</Filter>
     </ClInclude>
+    <ClInclude Include="..\base64.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="mhook">

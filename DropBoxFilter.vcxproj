@@ -100,6 +100,7 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="base64.cpp" />
     <ClCompile Include="DropBoxFilter.cpp" />
     <ClCompile Include="SQLite\shell.c" />
     <ClCompile Include="SQLite\sqlite3.c" />
@@ -110,6 +111,7 @@
     <ClCompile Include="Util.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="base64.h" />
     <ClInclude Include="DropBoxFilter.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SQLite\sqlite3.h" />
