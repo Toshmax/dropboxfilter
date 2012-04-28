@@ -346,10 +346,15 @@ void LaunchDropbox()
 {
 	char exePath[MAX_PATH];
 	sprintf(exePath,"%s\\Dropbox\\bin\\Dropbox.exe",getenv("APPDATA"));
+#ifdef _DEBUG
+	char dllPath[MAX_PATH];
+	sprintf(dllPath,"Debug\\Inject.dll");
+#else
 	char installPath[MAX_PATH];
 	sprintf(installPath,"%s\\DropboxFilter",getenv("ProgramFiles"));
 	char dllPath[MAX_PATH];
 	sprintf(dllPath,"%s\\DropboxFilter.dll",installPath);
+#endif
 
 	STARTUPINFO si;
 	::ZeroMemory(&si, sizeof(STARTUPINFO));

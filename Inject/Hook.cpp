@@ -113,7 +113,7 @@ FindNextFileW_hook(
 		ReleaseMutex(handle2pathMutex);
 		wcscat(path,lpFindFileData->cFileName);
 
-		if(!Filter(path))
+		if(!Filter(path,lpFindFileData->dwFileAttributes))
 			break;
 	}
 	return ret;
@@ -194,7 +194,7 @@ FindFirstFileExW_hook(
 			break;
 		int len = wcslen(path);
 		wcscat(path,lpFindFileData->cFileName);
-		if(!Filter(path))
+		if(!Filter(path,lpFindFileData->dwFileAttributes))
 			break;
 		path[len] = 0;
 		BOOL ret = FindNextFileW_sys(hRet,lpFindFileData);
@@ -248,7 +248,7 @@ FindFirstFileW_hook(
 			break;
 		int len = wcslen(path);
 		wcscat(path,lpFindFileData->cFileName);
-		if(!Filter(path))
+		if(!Filter(path,lpFindFileData->dwFileAttributes))
 			break;
 		path[len] = 0;
 		BOOL ret = FindNextFileW_sys(hRet,lpFindFileData);
@@ -290,7 +290,7 @@ void FilterNotifyInformation(void *_info,HANDLE hDirectory)
 					name[outIdx] = in->FileName[inIdx];
 				}
 				name[outIdx] = 0;
-				if(Filter(name)) {
+				if(Filter(name,GetFileAttributesW(name))) {
 					in->FileName[0] = '@';
 				}
 			}

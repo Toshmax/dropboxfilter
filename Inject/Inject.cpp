@@ -11,7 +11,14 @@
 #include "../base64.h"
 using namespace std;
 
-deque<wstring> filterExpr;
+struct FilterExpr
+{
+	wstring	expr;
+	DWORD attrib_eor;
+	DWORD attrib_mask;
+};
+
+deque<FilterExpr> filterExpr;
 AutoFreeHandle filterExprMutex = CreateMutex(NULL,FALSE,NULL);
 
 wchar_t dropboxPath[MAX_PATH];
@@ -86,22 +93,100 @@ void ReadSettings()
 		ReleaseMutex(filterExprMutex);
 
 		wchar_t line[1024*10];
+		wchar_t statement[1024*10];
 		while(fgetws(line,sizeof(line),file)) {
-			if(line[0] == L'#')
-				continue;
-			int in=0,out=0;
-			while(line[in] != 0) {
-				wchar_t c = line[in++];
-				if(c == '\n')
-					continue;
-				line[out++] = c;
+			int in=0;
+next:
+			while(line[in] == ' ' || line[in] == '\t') {
+				in++;
 			}
-			line[out++] = 0;
-			if(line[0] == 0)
+			int out=0;
+			if(line[in] == L'#')
 				continue;
+			wchar_t c = 0;
+			while(line[in] != 0) {
+				c = line[in++];
+				if(c == '\n' || c == '\r')
+					continue;
+				if(c == '#') {
+					in--;
+					break;
+				}
+				if(c == '<' || c == ',' || c == ';' ) {
+					break;
+				}
+				statement[out++] = c;
+			}
+			while(out && (statement[out-1] == ' ' || statement[out-1] == '\t')) {
+				out++;
+			}
+			statement[out++] = 0;
+			if(statement[0] == 0)
+				continue;
+
+			FilterExpr expr;
+			expr.expr = statement;
+			expr.attrib_eor = 0;
+			expr.attrib_mask = 0;
+
+			if(c == '<') {
+				while(line[in] != 0 && line[in] != '>') {
+					c = line[in];
+					bool set= true;
+					if(c == '+') {
+						set = true;
+						in++;
+					} else if(c == '-') {
+						set = false;
+						in++;
+					}
+					c = line[in++];
+					switch(c) {
+					case 'h':
+					case 'H':
+						expr.attrib_mask |= FILE_ATTRIBUTE_HIDDEN;
+						expr.attrib_eor |= FILE_ATTRIBUTE_HIDDEN * set;
+						break;
+					case 's':
+					case 'S':
+						expr.attrib_mask |= FILE_ATTRIBUTE_SYSTEM;
+						expr.attrib_eor |= FILE_ATTRIBUTE_SYSTEM * set;
+						break;
+					case 'a':
+					case 'A':
+						expr.attrib_mask |= FILE_ATTRIBUTE_ARCHIVE;
+						expr.attrib_eor |= FILE_ATTRIBUTE_ARCHIVE * set;
+						break;
+					case 'c':
+					case 'C':
+						expr.attrib_mask |= FILE_ATTRIBUTE_COMPRESSED;
+						expr.attrib_eor |= FILE_ATTRIBUTE_COMPRESSED * set;
+						break;
+					case 'd':
+					case 'D':
+						expr.attrib_mask |= FILE_ATTRIBUTE_DIRECTORY;
+						expr.attrib_eor |= FILE_ATTRIBUTE_DIRECTORY * set;
+						break;
+					case 'r':
+					case 'R':
+						expr.attrib_mask |= FILE_ATTRIBUTE_READONLY;
+						expr.attrib_eor |= FILE_ATTRIBUTE_READONLY * set;
+						break;
+					case 'j':
+					case 'J':
+						expr.attrib_mask |= FILE_ATTRIBUTE_REPARSE_POINT;
+						expr.attrib_eor |= FILE_ATTRIBUTE_REPARSE_POINT * set;
+						break;
+					}
+				}
+				if(line[in] == '>') {
+					in++;
+				}
+			}
 			WaitForSingleObject(filterExprMutex,INFINITE);
-			filterExpr.push_back(line);
+			filterExpr.push_back(expr);
 			ReleaseMutex(filterExprMutex);
+			goto next;
 		}
 		fclose(file);
 	} else {
@@ -127,7 +212,7 @@ bool beginsWith(const wchar_t *str,const wchar_t *comp)
 	return wcsnicmp(str,comp,wcslen(comp)) == 0;
 }
 
-bool Filter(const wchar_t *fileName)
+bool Filter(const wchar_t *fileName,DWORD attrib)
 {
 	if(endsWith(fileName,L"\\DropboxFilter.cfg")) {
 		ReadSettings();
@@ -140,7 +225,9 @@ bool Filter(const wchar_t *fileName)
 
 	WaitForSingleObject(filterExprMutex,INFINITE);
 	for(unsigned i=0;i<filterExpr.size();i++) {
-		if(WildcardMatch(fileName,filterExpr[i].c_str())) {
+		if((attrib ^ filterExpr[i].attrib_eor) & filterExpr[i].attrib_mask)
+			continue;
+		if(WildcardMatch(fileName,filterExpr[i].expr.c_str())) {
 			ReleaseMutex(filterExprMutex);
 			return true;
 		}

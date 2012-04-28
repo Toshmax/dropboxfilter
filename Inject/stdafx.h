@@ -25,7 +25,7 @@
 #include <list>
 using namespace std;
 
-bool Filter(const wchar_t *fileName);
-bool Filter(const char *fileName);
+bool Filter(const wchar_t *fileName,DWORD attrib);
+bool Filter(const char *fileName,DWORD attrib);
 
 // TODO: reference additional headers your program requires here
