@@ -9,6 +9,8 @@
 #include <deque>
 #include "../SQLite/sqlite3.h"
 #include "../base64.h"
+#include <iostream>
+#include <fstream>
 using namespace std;
 
 struct FilterExpr
@@ -23,9 +25,32 @@ AutoFreeHandle filterExprMutex = CreateMutex(NULL,FALSE,NULL);
 
 wchar_t dropboxPath[MAX_PATH];
 
+wofstream log_file;
+
+#ifdef _DEBUG
+
+void log(const string& message)
+{
+	wclog << "DropboxFilter: " << message.c_str() << endl;
+}
+
+void log(const wstring& message)
+{
+	wclog << "DropboxFilter: " << message << endl;
+}
+
+#else
+
+// do nothing for a release build
+void log(...) {}
+
+#endif
+
 void GetDropboxPath()
 {
 	dropboxPath[0] = 0;
+	log("Looking for Dropbox path...");
+
 	char dropboxDbPath[MAX_PATH];
 	sprintf(dropboxDbPath,"%s\\Dropbox\\config.db",getenv("APPDATA"));
 
@@ -57,12 +82,17 @@ void GetDropboxPath()
 		}
 
 	}
+
+	log("Assuming Dropbox path is:");
+	log(dropboxPath);
 }
 
 __int64 settingsMtime;
 
 void ReadSettings()
 {
+	log("Reading settings...");
+
 	static int inside=false;
 	if(inside)
 		return;
@@ -232,24 +262,40 @@ bool Filter(const wchar_t *fileName,DWORD attrib)
 			return true;
 		}
 	}
+
+	log(wstring(fileName) + L": not filtered");
+
 	ReleaseMutex(filterExprMutex);
 	return false;
 }
 
 bool Init()
 {
+	// check if this really is the Dropbox process
 	char name[MAX_PATH]="";
 	GetModuleFileNameA(NULL,name,sizeof(name));
 	if(!endsWith(name,"\\dropbox.exe"))
 		return false;
 
+#ifdef _DEBUG
+	// open the log file for wclog
+	log_file.open("C:\\dbfilter.log", ios::app);
+	wclog.rdbuf(log_file.rdbuf());
+#endif
+
+	log("Init()");
+
 	ReadSettings();
+
+	log("Calling Hook()");
 	Hook();
+
 	return true;
 }
 
 void  Detatch()
 {
+	log("Detach()");
 	UnHook();
 }
 
@@ -261,12 +307,14 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	switch (ul_reason_for_call)
 	{
 	case DLL_PROCESS_ATTACH:
-		if(!Init()) {
+		if (!Init()) {
+			log("Error in Init)");
 			return FALSE;
 		}
 		break;
 	case DLL_PROCESS_DETACH:
 		Detatch();
+		log("Finished");
 		break;
 	case DLL_THREAD_ATTACH:
 	case DLL_THREAD_DETACH:
