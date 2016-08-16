@@ -28,4 +28,6 @@ using namespace std;
 bool Filter(const wchar_t *fileName,DWORD attrib);
 bool Filter(const char *fileName,DWORD attrib);
 
+bool FilterExceptions(const wchar_t *fileName,DWORD attrib);
+
 // TODO: reference additional headers your program requires here

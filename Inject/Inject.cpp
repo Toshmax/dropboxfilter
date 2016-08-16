@@ -20,6 +20,7 @@ struct FilterExpr
 };
 
 deque<FilterExpr> filterExpr;
+deque<FilterExpr> filterExcpExpr;
 AutoFreeHandle filterExprMutex = CreateMutex(NULL,FALSE,NULL);
 
 wchar_t dropboxPath[MAX_PATH] = { 0 };
@@ -106,12 +107,14 @@ void ReadSettings()
 	if(file) {
 		WaitForSingleObject(filterExprMutex,INFINITE);
 		filterExpr.clear();
+		filterExcpExpr.clear();
 		ReleaseMutex(filterExprMutex);
 
 		wchar_t line[1024*10];
 		wchar_t statement[1024*10];
 		while(fgetws(line,sizeof(line),file)) {
 			int in=0;
+			bool exception = false;
 next:
 			while(line[in] == ' ' || line[in] == '\t') {
 				in++;
@@ -199,8 +202,17 @@ next:
 					in++;
 				}
 			}
+			
+			if(expr.expr == L"-") {
+				exception = true;
+				goto next;
+			}
+
 			WaitForSingleObject(filterExprMutex,INFINITE);
-			filterExpr.push_back(expr);
+			if(!exception)	
+				filterExpr.push_back(expr);
+			else
+				filterExcpExpr.push_back(expr);
 			ReleaseMutex(filterExprMutex);
 			goto next;
 		}
@@ -251,14 +263,33 @@ bool Filter(const wchar_t *fileName,DWORD attrib)
 		if((attrib ^ filterExpr[i].attrib_eor) & filterExpr[i].attrib_mask)
 			continue;
 		if(WildcardMatch(fileName,filterExpr[i].expr.c_str())) {
+			bool exception = FilterExceptions(fileName, attrib);
+
+			if (!exception)
+				write_log(wstring(fileName) + L": filtered");
+			else
+				write_log(wstring(fileName) + L": exception");
+
 			ReleaseMutex(filterExprMutex);
-			return true;
+			return !exception;
 		}
 	}
 
 	write_log(wstring(fileName) + L": not filtered");
 
 	ReleaseMutex(filterExprMutex);
+	return false;
+}
+
+bool FilterExceptions(const wchar_t *fileName,DWORD attrib)
+{
+	for(unsigned i=0;i<filterExcpExpr.size();i++) {
+		if((attrib ^ filterExcpExpr[i].attrib_eor) & filterExcpExpr[i].attrib_mask)
+			continue;
+		if(WildcardMatch(fileName,filterExcpExpr[i].expr.c_str()))
+			return true;
+	}
+
 	return false;
 }
 
