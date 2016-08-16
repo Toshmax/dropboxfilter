@@ -269,6 +269,8 @@ bool Filter(const wchar_t *fileName,DWORD attrib)
 	return false;
 }
 
+bool hooked = false;
+
 bool Init()
 {
 	// check if this really is the Dropbox process
@@ -289,6 +291,7 @@ bool Init()
 
 	log("Calling Hook()");
 	Hook();
+	hooked = true;
 
 	return true;
 }
@@ -296,7 +299,10 @@ bool Init()
 void  Detatch()
 {
 	log("Detach()");
-	UnHook();
+	// unhook only if it was really done
+	if (hooked) {
+		UnHook();
+	}
 }
 
 BOOL APIENTRY DllMain( HMODULE hModule,
