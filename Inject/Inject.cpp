@@ -235,9 +235,15 @@ bool Filter(const wchar_t *fileName,DWORD attrib)
 		ReadSettings();
 		return false;
 	}
+
+	// remove "\\?\" that appears at the beginning of some paths
+	if (beginsWith(fileName, L"\\\\?\\"))
+		fileName += 4; // skip the prefix
+
 	if(!beginsWith(fileName,dropboxPath)) {
 		return false;
 	}
+
 	fileName += wcslen(dropboxPath);
 
 	WaitForSingleObject(filterExprMutex,INFINITE);
