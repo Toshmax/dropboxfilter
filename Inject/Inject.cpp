@@ -25,24 +25,22 @@ AutoFreeHandle filterExprMutex = CreateMutex(NULL,FALSE,NULL);
 
 wchar_t dropboxPath[MAX_PATH];
 
-wofstream log_file;
-
 #ifdef _DEBUG
 
-void log(const string& message)
+template<typename T>
+void write_log(const T& message)
 {
-	wclog << "DropboxFilter: " << message.c_str() << endl;
-}
+	// open the file each time because otherwise after some time no new data is
+	// written for whatever reason
+	wofstream ofs("C:\\dbfilter.log", ios::app);
 
-void log(const wstring& message)
-{
-	wclog << "DropboxFilter: " << message << endl;
+	ofs << "DropboxFilter: " << message << endl;
 }
 
 #else
 
 // do nothing for a release build
-void log(...) {}
+void write_log(...) {}
 
 #endif
 
@@ -83,20 +81,21 @@ void GetDropboxPath()
 
 	}
 
-	log("Assuming Dropbox path is:");
-	log(dropboxPath);
+	write_log("Assuming Dropbox path is:");
+	write_log(dropboxPath);
 }
 
 __int64 settingsMtime;
 
 void ReadSettings()
 {
-	log("Reading settings...");
-
 	static int inside=false;
 	if(inside)
 		return;
+
+	write_log("Reading settings:");
 	inside = true;
+
 	if(dropboxPath[0] == 0) {
 		GetDropboxPath();
 	}
@@ -220,6 +219,7 @@ next:
 		}
 		fclose(file);
 	} else {
+		write_log("failed to open");
 	}
 	inside = false;
 }
@@ -263,7 +263,7 @@ bool Filter(const wchar_t *fileName,DWORD attrib)
 		}
 	}
 
-	log(wstring(fileName) + L": not filtered");
+	write_log(wstring(fileName) + L": not filtered");
 
 	ReleaseMutex(filterExprMutex);
 	return false;
@@ -279,17 +279,11 @@ bool Init()
 	if(!endsWith(name,"\\dropbox.exe"))
 		return false;
 
-#ifdef _DEBUG
-	// open the log file for wclog
-	log_file.open("C:\\dbfilter.log", ios::app);
-	wclog.rdbuf(log_file.rdbuf());
-#endif
-
-	log("Init()");
+	write_log("Init()");
 
 	ReadSettings();
 
-	log("Calling Hook()");
+	write_log("Calling Hook()");
 	Hook();
 	hooked = true;
 
@@ -298,7 +292,7 @@ bool Init()
 
 void  Detatch()
 {
-	log("Detach()");
+		write_log("Detach()");
 	// unhook only if it was really done
 	if (hooked) {
 		UnHook();
@@ -314,13 +308,11 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	{
 	case DLL_PROCESS_ATTACH:
 		if (!Init()) {
-			log("Error in Init)");
 			return FALSE;
 		}
 		break;
 	case DLL_PROCESS_DETACH:
 		Detatch();
-		log("Finished");
 		break;
 	case DLL_THREAD_ATTACH:
 	case DLL_THREAD_DETACH:
