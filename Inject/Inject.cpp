@@ -7,7 +7,6 @@
 #include "../Util.h"
 #include <string>
 #include <deque>
-#include "../SQLite/sqlite3.h"
 #include "../base64.h"
 #include <iostream>
 #include <fstream>
@@ -23,7 +22,7 @@ struct FilterExpr
 deque<FilterExpr> filterExpr;
 AutoFreeHandle filterExprMutex = CreateMutex(NULL,FALSE,NULL);
 
-wchar_t dropboxPath[MAX_PATH];
+wchar_t dropboxPath[MAX_PATH] = { 0 };
 
 #ifdef _DEBUG
 
@@ -46,40 +45,28 @@ void write_log(...) {}
 
 void GetDropboxPath()
 {
-	dropboxPath[0] = 0;
-	log("Looking for Dropbox path...");
+	write_log("Looking for Dropbox path...");
 
-	char dropboxDbPath[MAX_PATH];
-	sprintf(dropboxDbPath,"%s\\Dropbox\\config.db",getenv("APPDATA"));
+	string path;
 
-	bool pathFound = false;
-
-	sqlite3 *db=NULL;
-	sqlite3_open(dropboxDbPath,&db);
-	if(db) {
-		sqlite3_stmt *stmt;
-		if(sqlite3_prepare(db,"select value from config where key is 'dropbox_path';",-1,&stmt,NULL) == SQLITE_OK) {
-			if(sqlite3_step(stmt) ==  SQLITE_ROW) {
-				const char *path = (char *)sqlite3_column_blob(stmt,0);
-				mbstowcs(dropboxPath,path,strlen(path)+1);
-			}
-			sqlite3_finalize(stmt);
-		}
-		sqlite3_close(db);
+	// look for the environment variable
+	const char* env_path = getenv("DROPBOX_FILTER_PATH");
+	if (env_path) {
+		path = env_path;
 	}
-	if(!pathFound) {
-		sprintf(dropboxDbPath,"%s\\Dropbox\\host.db",getenv("APPDATA"));
-		FILE *file = fopen(dropboxDbPath,"r");
-		if(file) {
-			char line[1024*10]="";
-			fgets(line,sizeof(line),file);
-			fgets(line,sizeof(line),file);
-			string path = base64_decode(line);
-			mbstowcs(dropboxPath,path.c_str(),path.size()+1);
-			fclose(file);
-		}
+	else {
+		// use the default path in the user's home directory
+		const char* homedrive = getenv("HOMEDRIVE");
+		const char* homepath = getenv("HOMEPATH");
 
+		if (homedrive && homepath) {
+			path += homedrive;
+			path += homepath;
+			path += "\\Dropbox";
+		}
 	}
+
+	mbstowcs(dropboxPath, path.c_str(), path.size() + 1);
 
 	write_log("Assuming Dropbox path is:");
 	write_log(dropboxPath);
