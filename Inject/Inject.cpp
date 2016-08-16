@@ -92,12 +92,14 @@ void ReadSettings()
 	wsprintfW(configPath,L"%s\\DropboxFilter.cfg",dropboxPath);
 
 	struct _stat64 stat;
-	if(_wstat64(configPath,&stat) == -1) {
+	if (_wstat64(configPath, &stat) == -1) {
+		write_log("not existing");
 		inside = false;
 		return ;
 	}
 
-	if(settingsMtime == stat.st_mtime) {
+	if (settingsMtime == stat.st_mtime) {
+		write_log("unchanged");
 		inside = false;
 		return;
 	}
@@ -316,7 +318,6 @@ bool Init()
 
 void  Detatch()
 {
-		write_log("Detach()");
 	// unhook only if it was really done
 	if (hooked) {
 		UnHook();
