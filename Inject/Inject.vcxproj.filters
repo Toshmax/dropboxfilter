@@ -19,12 +19,6 @@
     <ClCompile Include="mhook-lib\mhook.cpp">
       <Filter>mhook</Filter>
     </ClCompile>
-    <ClCompile Include="..\SQLite\shell.c">
-      <Filter>SQLite</Filter>
-    </ClCompile>
-    <ClCompile Include="..\SQLite\sqlite3.c">
-      <Filter>SQLite</Filter>
-    </ClCompile>
     <ClCompile Include="..\base64.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -49,20 +43,11 @@
     <ClInclude Include="mhook-lib\mhook.h">
       <Filter>mhook</Filter>
     </ClInclude>
-    <ClInclude Include="..\SQLite\sqlite3.h">
-      <Filter>SQLite</Filter>
-    </ClInclude>
-    <ClInclude Include="..\SQLite\sqlite3ext.h">
-      <Filter>SQLite</Filter>
-    </ClInclude>
     <ClInclude Include="..\base64.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="mhook">
       <UniqueIdentifier>{a0df953b-15f5-4074-bc09-ed313b2d3236}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="SQLite">
-      <UniqueIdentifier>{1b554d01-a155-4a33-8745-70f39998e761}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
