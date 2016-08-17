@@ -97,6 +97,15 @@ void ReadSettings()
 		inside = false;
 		return ;
 	}
+	
+	// Sometimes it happens that the file was just now created and has no 
+	// content yet. Ignore such cases and try reading it again the next time it
+	// is changed (when a write has actually happened).
+	if (stat.st_size == 0) {
+		write_log("empty");
+		inside = false;
+		return ;
+	}
 
 	if (settingsMtime == stat.st_mtime) {
 		write_log("unchanged");
