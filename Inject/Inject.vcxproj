@@ -89,6 +89,10 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(TargetDir)$(ProjectName).dll" "$(SolutionDir)DropboxFilter\DropboxFilter.dll"</Command>
+      <Message>Copy the DLL to the installation directory.</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\base64.cpp" />
